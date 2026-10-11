@@ -48,13 +48,43 @@ make programs
 python3 tools/ascii85p.py src/*.ASC --output-dir programs
 ```
 
-The converter creates native tokenized TI-85 program files and reserves the
+The Python converter creates native tokenized TI-85 program files and reserves the
 calculator's Goto destination cache bytes. It rejects unsupported syntax and
 does not execute BASIC sources on the host.
 
+### C converter
+
+The supplied V8 bundle's C converter is also included as
+[`tools/ascii85p.c`](tools/ascii85p.c). It was originally named `ti85asc.c`;
+the source is preserved unchanged. Build it with a C99 compiler and make:
+
+```sh
+make converter
+# Or directly:
+cc -std=c99 -O2 -Wall -Wextra -o ascii85p tools/ascii85p.c
+```
+
+The make target places the executable at `build/ascii85p`. Its commands are:
+
+```sh
+build/ascii85p lint src/SIGHT.ASC
+build/ascii85p pack src/SIGHT.ASC build/SIGHT.85p
+build/ascii85p check build/SIGHT.85p
+build/ascii85p unpack build/SIGHT.85p > build/SIGHT.bas
+```
+
+This C converter emits the older plain-text TI-85 program representation and
+supports lint, pack, unpack, and structural/checksum checks. Its escape support
+differs from the Python tokenizer; it is not assumed to accept every source in
+this repository. `unpack` supports plain-text files only. The original
+[`converter notes`](tools/README_TI85ASC.txt) are retained; their verification
+statements describe the supplied bundle. The C converter has not been built or
+run here as part of this repository update. `make programs` continues to use the
+Python tokenizer that produced the included, recorded calculator runs.
+
 The supplied V8 bundle's SIGHT binary did not reach its startup banner on the
 development ROM. The SIGHT binary distributed here was rebuilt from the
-canonical V8 source with this converter and completed the recorded scenarios.
+canonical V8 source with the Python tokenizer and completed the recorded scenarios.
 See [source and binary provenance](docs/PROVENANCE.md).
 
 ## Results and roadmap
@@ -75,3 +105,5 @@ The Python converter is GPL-3.0-or-later; its notice and license are preserved
 in `tools/`. The supplied navigation sources and original bundle documents
 did not include an explicit redistribution license. Their provenance is
 recorded in `docs/PROVENANCE.md`; no new license has been assigned to them.
+The supplied C converter has no explicit license notice; the Python converter's
+GPL notice has not been applied to it.
