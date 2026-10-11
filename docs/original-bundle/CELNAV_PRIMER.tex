@@ -1,0 +1,1222 @@
+\documentclass[11pt]{article}
+\usepackage[letterpaper,margin=1in]{geometry}
+\usepackage{fancyvrb}
+\usepackage{parskip}
+\usepackage[hidelinks]{hyperref}
+\usepackage{titlesec}
+\usepackage{fancyhdr}
+\renewcommand{\ttdefault}{cmtt}
+\fvset{fontsize=\small,frame=none,xleftmargin=1.5em}
+\titleformat{\section}{\large\bfseries}{}{0pt}{}
+\titlespacing*{\section}{0pt}{2.2ex plus 1ex}{1.2ex}
+\titlespacing*{\subsection}{0pt}{1.8ex plus .6ex}{0.7ex}
+\pagestyle{fancy}\fancyhf{}
+\fancyfoot[L]{\footnotesize Celestial Navigation Primer}
+\fancyfoot[R]{\footnotesize\thepage}
+\renewcommand{\headrulewidth}{0pt}
+\begin{document}
+\begin{center}
+{\LARGE\bfseries Celestial Navigation Primer}\\[0.6ex]
+{\normalsize with notes on the TI-85 programs that go with it}
+\end{center}
+\vspace{1.5ex}
+This is a primer on the classical intercept method of celestial sight reduction: what it is, why it takes the shape it does, and how to work it. The last part of the document covers a set of small TI-85 programs that automate the arithmetic, but the navigation comes first and stands on its own.
+
+HO229 is the smallest of those programs, and does the mathematical part of the sight reduction.
+
+It replaces the job normally done by Pub. 229 sight-reduction tables:
+
+\begin{verbatim}
+    INPUT:
+        assumed latitude
+        Local Hour Angle (LHA)
+        declination
+\end{verbatim}
+
+\begin{verbatim}
+    OUTPUT:
+        Hc  = computed altitude
+        Z   = traditional azimuth angle
+        Zn  = true azimuth, clockwise from true north
+\end{verbatim}
+
+HO229 does NOT replace the Nautical or Air Almanac, the sextant corrections, or the plotting of the Line of Position (LOP). Its purpose is narrower: calculate the celestial triangle directly instead of looking the answer up in large printed tables.
+
+\subsection*{HOW THIS IS ORGANISED}
+
+This document circles the same ground several times, going a little deeper each lap. That is deliberate. Celestial navigation is not hard, but it is interlocking: almost nothing can be explained properly until something else has been explained first, and if you try to lay it out once in strict logical order you get a wall of prerequisites nobody can hold in their head.
+
+So instead: the first lap tells the whole story in seven short sections, with every hard part waved at rather than explained. You will finish it with a correct mental picture and several unanswered questions. The next lap answers some of them and raises better ones. And so on.
+
+Each lap is self-contained. Stop after the first and you will still understand what you are doing and be able to work a sight correctly with the tables. Stop after the fourth and you will understand why the tables are built the way they are. The last lap is not needed to navigate at all; it is there because the geometry is worth seeing whole.
+
+The laps are labelled FIRST PASS, SECOND PASS and so on. Section numbers run straight through, 1 to 42, so cross-references work regardless of where you are.
+
+\clearpage
+\tableofcontents
+\clearpage
+\section*{FIRST PASS -- THE WHOLE IDEA, NOTHING EXPLAINED}
+\addcontentsline{toc}{section}{FIRST PASS -- THE WHOLE IDEA, NOTHING EXPLAINED}
+
+\subsection*{1.\quad ONE SIGHT GIVES A CIRCLE}
+\addcontentsline{toc}{subsection}{1.\ ONE SIGHT GIVES A CIRCLE}
+
+At a particular instant, a celestial body has a point directly beneath it on the Earth. This is its Geographic Position, or GP.
+
+Everyone who measures the same corrected altitude of that body lies on the same circle around the GP: a CIRCLE OF EQUAL ALTITUDE.
+
+One observation says:
+
+\begin{verbatim}
+    "I am somewhere on this circle."
+\end{verbatim}
+
+\begin{verbatim}
+                                                observer
+                            ---------------------   |
+                      -------                   ----*--
+                   ----                         ...   ----
+                ---                          ....         ---
+               /                          ....               \
+              /                         ...                   \
+              |                   GP  *                       |
+              |                                               |
+               \                                             /
+                ---                                       ---
+                   ----                               ----
+                      -------                   -------
+                            ---------------------
+\end{verbatim}
+
+\begin{verbatim}
+        The observer is ON the circle, not inside it. The dotted line is
+        the radius: the zenith distance, 90 degrees - Ho. Every point on
+        the rim sees the body at the same altitude.
+\end{verbatim}
+
+A second body gives another circle. Two circles cross at two points:
+
+\begin{verbatim}
+                      -----------------         -----------------
+                 ------               -----------               ------
+               ---                       --1--                       ---
+             ---                       ---   ---                       ---
+            /                         /         \                         \
+           |                         |           |                         |
+           |            GP-A  *      |           |      * GP-B             |
+           |                         |           |                         |
+            \                         \         /                         /
+             ---                       ---   ---                       ---
+               ---                       --2--                       ---
+                 ------               -----------               ------
+                      -----------------         -----------------
+\end{verbatim}
+
+\begin{verbatim}
+        Points 1 and 2 are the two geometric possibilities. In practice
+        they are hundreds or thousands of miles apart, so your Dead
+        Reckoning (DR) position tells you which one is the sensible fix
+        without any ambiguity at all.
+\end{verbatim}
+
+A third sight adds redundancy and helps show observational error.
+
+\subsection*{2.\quad WHY NOT JUST DRAW THE CIRCLES?}
+\addcontentsline{toc}{subsection}{2.\ WHY NOT JUST DRAW THE CIRCLES?}
+
+The radius of a circle of equal altitude is the zenith distance:
+
+\begin{verbatim}
+    Zenith Distance = 90 degrees - observed altitude
+\end{verbatim}
+
+One minute of arc on the Earth's surface is approximately one nautical mile. So a body at 30 degrees altitude has an equal-altitude circle with a radius of about 3600 NM.
+
+That is inconvenient to draw on a local plotting sheet.
+
+The intercept method solves this by working only with the small part of the circle near an estimated position.
+
+\subsection*{3.\quad THE ASSUMED POSITION}
+\addcontentsline{toc}{subsection}{3.\ THE ASSUMED POSITION}
+
+Choose a nearby Assumed Position, or AP.
+
+The AP is NOT a claim that you are actually there. It is a convenient reference point from which to ask:
+
+\begin{verbatim}
+    "If I really were standing here, what altitude should I see?"
+\end{verbatim}
+
+Given AP latitude, LHA, and declination, HO229 calculates:
+
+\begin{verbatim}
+    Hc = the altitude the body would have from the AP
+    Zn = the direction of the body from the AP
+\end{verbatim}
+
+\subsection*{4.\quad THE SEXTANT TELLS WHAT YOU ACTUALLY SAW}
+\addcontentsline{toc}{subsection}{4.\ THE SEXTANT TELLS WHAT YOU ACTUALLY SAW}
+
+After correcting the sextant altitude, you obtain:
+
+\begin{verbatim}
+    Ho = observed altitude
+\end{verbatim}
+
+Now compare:
+
+\begin{verbatim}
+    Hc = predicted altitude from the AP
+    Ho = actual corrected observed altitude
+\end{verbatim}
+
+The difference tells how far the real circle of equal altitude lies from the computed circle passing through the AP:
+
+\begin{verbatim}
+    Intercept = |Ho - Hc|
+\end{verbatim}
+
+One minute of altitude difference corresponds to about one nautical mile.
+
+\subsection*{5.\quad TOWARD OR AWAY}
+\addcontentsline{toc}{subsection}{5.\ TOWARD OR AWAY}
+
+Higher altitude means closer to the body's GP. Lower altitude means farther away.
+
+Therefore:
+
+\begin{verbatim}
+    Ho > Hc  ->  TOWARD
+    Ho < Hc  ->  AWAY
+\end{verbatim}
+
+The traditional mnemonic is "Ho Mo To" -- Ho more, Toward.
+
+\subsection*{6.\quad WHY THE LOP IS A STRAIGHT LINE}
+\addcontentsline{toc}{subsection}{6.\ WHY THE LOP IS A STRAIGHT LINE}
+
+The true circle of equal altitude is curved, but its radius is normally huge compared with the few miles shown on a plotting sheet. A short piece therefore looks nearly straight.
+
+The plotted Line of Position, or LOP, is the local tangent approximation to that circle.
+
+Zn gives the local great-circle direction toward the body's GP. The LOP is perpendicular to that direction.
+
+\begin{verbatim}
+                                 * GP  (far away, in this direction)
+                                 ^
+                                 |
+                                 |   direction Zn
+                                 |
+            ---------------------X---------------------   LOP
+                                 ^
+                                 |   intercept = |Ho - Hc|, in NM
+                                 |   stepped TOWARD the body (Ho > Hc)
+                                 |
+                              AP *
+\end{verbatim}
+
+\begin{verbatim}
+        Start at the AP, walk the intercept along Zn, and draw the LOP
+        perpendicular to Zn at the point you reach. If Ho < Hc you walk
+        the opposite way instead, and the LOP falls on the far side of
+        the AP.
+\end{verbatim}
+
+\subsection*{7.\quad TWO LOPS GIVE THE FIX}
+\addcontentsline{toc}{subsection}{7.\ TWO LOPS GIVE THE FIX}
+
+Repeat the process with another body.
+
+Two different observations produce two local tangent approximations to two different circles of equal altitude. Their intersection is normally very close to the intersection of the actual circles, provided the AP is reasonably near the true position.
+
+The intercept method in one sentence:
+
+\begin{verbatim}
+    Predict what should be seen from a nearby point, compare it with what was
+    actually seen, and use the difference to locate the nearby tangent to the
+    true circle of equal altitude.
+\end{verbatim}
+
+\section*{SECOND PASS -- WHAT THE BOOKS ARE ACTUALLY FOR}
+\addcontentsline{toc}{section}{SECOND PASS -- WHAT THE BOOKS ARE ACTUALLY FOR}
+
+\subsection*{8.\quad WHAT IS PUB. 229?}
+\addcontentsline{toc}{subsection}{8.\ WHAT IS PUB. 229?}
+
+Pub. 229 is not a worksheet and it is not the almanac.
+
+Sight Reduction Tables for Marine Navigation, Pub. 229, is a large set of precomputed sight-reduction tables traditionally published in six volumes.
+
+The tables are essentially a printed implementation of a mathematical function. You enter with quantities such as:
+
+\begin{verbatim}
+    assumed latitude
+    LHA
+    declination
+\end{verbatim}
+
+and read out:
+
+\begin{verbatim}
+    Hc
+    Z
+\end{verbatim}
+
+The books are large because enormous numbers of input combinations were calculated in advance and printed so the navigator did not have to perform the spherical trigonometry directly.
+
+HO229 replaces those thousands of printed pages with the underlying trigonometric calculation. The TI-85 does not contain a miniature copy of the tables. It evaluates the function from which the table entries were produced.
+
+\subsection*{9.\quad THE ALMANAC AND PUB. 229 DO DIFFERENT JOBS}
+\addcontentsline{toc}{subsection}{9.\ THE ALMANAC AND PUB. 229 DO DIFFERENT JOBS}
+
+This distinction is easy to miss.
+
+THE ALMANAC answers:
+
+\begin{verbatim}
+    "Where is the celestial body at this time?"
+\end{verbatim}
+
+Its key results are GHA (Greenwich Hour Angle) and Dec (declination).
+
+PUB. 229 answers:
+
+\begin{verbatim}
+    "From this assumed position, what should I see?"
+\end{verbatim}
+
+Its key outputs are Hc and Z.
+
+HO229 replaces the second job, not the first.
+
+\begin{verbatim}
+              clock / UTC
+                   |
+                   v
+           +-----------------+
+           |     ALMANAC     |   Where is the body now?
+           +-----------------+
+              |           |
+             GHA         Dec
+              |           |
+     AP longitude         |
+              |           |
+              v           |
+             LHA          |
+              |           |
+    AP latitude           |
+              |           |
+              +-----+-----+
+                    |
+                    v
+              +-----------+
+              |   HO229   |   What would I see from the AP?
+              +-----------+
+                |       |
+               Hc       Zn
+                |        |
+                |        +-------------------+
+                v                            |
+        compare with Ho                      |
+        from the sextant                     |
+                |                            |
+                +------------+---------------+
+                             v
+                     intercept + LOP
+\end{verbatim}
+
+\section*{THIRD PASS -- WHERE THE NUMBERS COME FROM}
+\addcontentsline{toc}{section}{THIRD PASS -- WHERE THE NUMBERS COME FROM}
+
+\subsection*{10.\quad TIME IS PART OF THE SIGHT}
+\addcontentsline{toc}{subsection}{10.\ TIME IS PART OF THE SIGHT}
+
+A celestial observation is not merely an angle. It is an angle observed at a particular instant.
+
+Time matters because:
+
+\begin{verbatim}
+    1. the Earth is rotating
+    2. many celestial bodies are moving in their orbits
+\end{verbatim}
+
+The almanac combines the necessary astronomy and gives the navigator usable quantities for the requested time.
+
+\subsection*{11.\quad DECLINATION}
+\addcontentsline{toc}{subsection}{11.\ DECLINATION}
+
+Declination is the celestial analogue of latitude.
+
+It is measured north or south of the celestial equator:
+
+\begin{verbatim}
+    North declination -> positive in HO229
+    South declination -> negative in HO229
+\end{verbatim}
+
+If you know the body's declination, you know the latitude of its GP.
+
+\subsection*{12.\quad GREENWICH HOUR ANGLE}
+\addcontentsline{toc}{subsection}{12.\ GREENWICH HOUR ANGLE}
+
+Greenwich Hour Angle, GHA, describes the body's angular position relative to the Greenwich meridian. It is measured westward through 360 degrees.
+
+A useful mental picture is:
+
+\begin{verbatim}
+    GHA tells how far westward around the Earth you must measure from
+    Greenwich to reach the meridian passing beneath the body.
+\end{verbatim}
+
+Together:
+
+\begin{verbatim}
+    Declination -> GP latitude
+    GHA         -> GP longitude in the celestial-navigation convention
+\end{verbatim}
+
+\subsection*{13.\quad STARS, ARIES, AND SHA}
+\addcontentsline{toc}{subsection}{13.\ STARS, ARIES, AND SHA}
+
+For ordinary navigation, the navigational stars can be treated as an essentially fixed pattern on the celestial sphere.
+
+Instead of tabulating a separate GHA for every star at every instant, celestial navigation uses Aries as a reference direction. Each star has a Sidereal Hour Angle:
+
+\begin{verbatim}
+    SHA = angular position westward from Aries
+\end{verbatim}
+
+Then:
+
+\begin{verbatim}
+    GHA(star) = GHA(Aries) + SHA(star)
+\end{verbatim}
+
+Reduce the result to 0 through 360 degrees.
+
+Because both angles are measured westward from Greenwich, they simply add:
+
+\begin{verbatim}
+            Greenwich                   Aries                       star
+                |                         |                           |
+                |------- GHA Aries -------|                           |
+                |                         |                           |
+                |                         |----- SHA of the star -----|
+                |                         |                           |
+                |------------------ GHA of the star ------------------|
+\end{verbatim}
+
+\begin{verbatim}
+        SHA locates the star within the stellar pattern and barely changes.
+        GHA Aries says how far that whole pattern has turned past Greenwich
+        at this instant.
+\end{verbatim}
+
+Aries does NOT advance at 15 degrees per hour. That is the Sun's mean rate. The stars keep sidereal time, and Aries advances at
+
+\begin{verbatim}
+    360.9856 degrees / 24 hours = 15.04107 deg/hr = 15 deg 02.46 min/hr
+\end{verbatim}
+
+The extra 2.46 minutes per hour is the Earth's orbital motion: in one day the Earth moves about one degree around the Sun, so it must turn about one degree further to bring the Sun back to the same meridian than to bring a star back. Solar days are longer than sidereal days, and Aries runs ahead accordingly.
+
+This matters in practice. Using 15 deg/hr for Aries costs 1.23 minutes of arc at 30 minutes past the hour and 2.46 at 60 -- straight into your longitude. The Nautical Almanac's increment pages have a separate ARIES column for exactly this reason, and SIGHT uses the sidereal rate internally.
+
+\subsection*{14.\quad SUN, MOON, AND PLANETS}
+\addcontentsline{toc}{subsection}{14.\ SUN, MOON, AND PLANETS}
+
+The Sun, Moon, and planets do not stay fixed relative to the stellar background. Their positions must account for orbital motion.
+
+Modern ephemerides perform those astronomical calculations and the almanac presents the useful result: GHA and declination for the specified time. The navigator does not normally need to reproduce the orbital mechanics.
+
+\subsection*{15.\quad A NOTE ON TIME SCALES (OPTIONAL)}
+\addcontentsline{toc}{subsection}{15.\ A NOTE ON TIME SCALES (OPTIONAL)}
+
+You do not need this section to use HO229. Skip it on a first reading.
+
+For ordinary hand navigation, use the time system required by the almanac and record UTC accurately.
+
+At a deeper level, Earth rotation and orbital motion are different timing problems. UT1 is tied to the Earth's actual rotation. UTC is the atomic civil time scale used on clocks and is kept close to UT1. Precise orbital calculations use smooth atomic-derived or dynamical time arguments rather than the irregular rotation of the Earth as their clock.
+
+It is included because it helps explain why "where is the planet in space?" and "which part of the Earth is facing that direction?" are related but not identical problems.
+
+\subsection*{16.\quad LOCAL HOUR ANGLE}
+\addcontentsline{toc}{subsection}{16.\ LOCAL HOUR ANGLE}
+
+GHA is measured from Greenwich.
+
+HO229 needs the angular relationship between the body and the AP's meridian. That is Local Hour Angle, LHA.
+
+Using conventional east/west longitude notation:
+
+\begin{verbatim}
+    West longitude:
+        LHA = GHA - longitude
+\end{verbatim}
+
+\begin{verbatim}
+    East longitude:
+        LHA = GHA + longitude
+\end{verbatim}
+
+Add or subtract 360 degrees as necessary so:
+
+\begin{verbatim}
+    0 <= LHA < 360 degrees
+\end{verbatim}
+
+Example:
+
+\begin{verbatim}
+    GHA          = 125 degrees 55.4 minutes
+    AP longitude = 117 degrees 55.4 minutes W
+\end{verbatim}
+
+\begin{verbatim}
+    LHA          =   8 degrees 00.0 minutes
+\end{verbatim}
+
+\section*{FOURTH PASS -- SOLVING THE TRIANGLE}
+\addcontentsline{toc}{section}{FOURTH PASS -- SOLVING THE TRIANGLE}
+
+\subsection*{17.\quad THE CELESTIAL TRIANGLE}
+\addcontentsline{toc}{subsection}{17.\ THE CELESTIAL TRIANGLE}
+
+AP latitude, body declination, and LHA contain enough information to determine the body's altitude and direction as seen from the AP.
+
+The standard altitude equation is:
+
+\begin{verbatim}
+    sin(Hc) =
+        sin(Lat) sin(Dec)
+        + cos(Lat) cos(Dec) cos(LHA)
+\end{verbatim}
+
+HO229 evaluates this directly. This is the mathematical relationship represented by the paper Pub. 229 tables.
+
+\subsection*{18.\quad WHAT Hc MEANS}
+\addcontentsline{toc}{subsection}{18.\ WHAT Hc MEANS}
+
+Hc has a physical meaning:
+
+\begin{verbatim}
+    Hc is the altitude you would observe if you were actually standing at
+    the assumed position.
+\end{verbatim}
+
+So:
+
+\begin{verbatim}
+    Ho = what you actually saw
+    Hc = what the AP predicts
+\end{verbatim}
+
+\subsection*{19.\quad Z AND Zn}
+\addcontentsline{toc}{subsection}{19.\ Z AND Zn}
+
+HO229 also computes the body's direction.
+
+Zn is true azimuth measured clockwise from true north:
+
+\begin{verbatim}
+      0 degrees = North
+     90 degrees = East
+    180 degrees = South
+    270 degrees = West
+\end{verbatim}
+
+For plotting, Zn is the important quantity.
+
+Traditional tables distinguish the azimuth angle Z from true azimuth Zn. Z is measured from the ELEVATED POLE -- the pole nearer to you -- and runs 0 to 180 degrees. HO229 reports Z in that same sense, so the printed quadrant rules apply to it unchanged:
+
+\begin{verbatim}
+    N Lat:  LHA > 180  ->  Zn = Z          LHA < 180  ->  Zn = 360 - Z
+    S Lat:  LHA > 180  ->  Zn = 180 - Z    LHA < 180  ->  Zn = 180 + Z
+\end{verbatim}
+
+HO229 displays both Z and Zn so its output can be checked against traditional work. Work the quadrant rule by hand the first few times and confirm the two agree.
+
+This is worth stating carefully because it is an easy place to go wrong. The formula for Z inside the program returns an angle measured from TRUE NORTH in both hemispheres. The program converts it to the elevated-pole convention before display. If it did not, the quadrant rules above would give wrong answers in southern latitudes -- and they would look plausible.
+
+\subsection*{20.\quad WHY HO229 DOES NOT NEED THE d-CORRECTION}
+\addcontentsline{toc}{subsection}{20.\ WHY HO229 DOES NOT NEED THE d-CORRECTION}
+
+Printed Pub. 229 tables contain discrete tabulated values, so interpolation is required when the actual declination falls between them.
+
+HO229 evaluates the trigonometric equations using the full value supplied by the user.
+
+Therefore:
+
+\begin{verbatim}
+    If the exact declination was entered into HO229, do NOT apply the printed
+    Pub. 229 declination interpolation afterward.
+\end{verbatim}
+
+That would count the correction twice.
+
+The same principle applies to LHA. Traditional tables encouraged choosing an AP longitude that produced a whole-degree LHA. HO229 can use a non-integral LHA directly.
+
+\section*{FIFTH PASS -- WHAT THE SEXTANT REALLY GIVES YOU}
+\addcontentsline{toc}{section}{FIFTH PASS -- WHAT THE SEXTANT REALLY GIVES YOU}
+
+\subsection*{21.\quad Hs, Ha, AND Ho}
+\addcontentsline{toc}{subsection}{21.\ Hs, Ha, AND Ho}
+
+The raw sextant reading is:
+
+\begin{verbatim}
+    Hs = sextant altitude
+\end{verbatim}
+
+The exact correction sequence depends on the body and the correction tables, but may include:
+
+\begin{verbatim}
+    index correction
+    dip / height of eye
+    refraction
+    parallax
+    semidiameter
+    body-specific corrections
+\end{verbatim}
+
+The final corrected observation is:
+
+\begin{verbatim}
+    Ho = observed altitude
+\end{verbatim}
+
+HO229 does not perform these observational corrections.
+
+\subsection*{22.\quad MOON AND LIMB OBSERVATIONS}
+\addcontentsline{toc}{subsection}{22.\ MOON AND LIMB OBSERVATIONS}
+
+For bodies with appreciable apparent diameter, especially the Sun and Moon, the navigator may observe a lower limb, upper limb, or center.
+
+The correction procedure must agree with what was actually observed.
+
+Do not automatically apply a semidiameter correction if the observation or source already refers to the center.
+
+\section*{SIXTH PASS -- THE WORK ON PAPER}
+\addcontentsline{toc}{section}{SIXTH PASS -- THE WORK ON PAPER}
+
+\subsection*{23.\quad THE PLOTTING SHEET IS A LOCAL DISTANCE PLANE}
+\addcontentsline{toc}{subsection}{23.\ THE PLOTTING SHEET IS A LOCAL DISTANCE PLANE}
+
+A plotting sheet is best understood locally as a flat north/east distance plane.
+
+Near the AP:
+
+\begin{verbatim}
+    vertical distance   = north/south distance in NM
+    horizontal distance = east/west distance in NM
+\end{verbatim}
+
+The AP can be placed at a convenient origin. Azimuth and intercept can then be plotted directly as distance and direction.
+
+\subsection*{24.\quad A COMMON AP IS OFTEN CONVENIENT WITH HO229}
+\addcontentsline{toc}{subsection}{24.\ A COMMON AP IS OFTEN CONVENIENT WITH HO229}
+
+Traditional Pub. 229 work often chooses a slightly different assumed longitude for each sight so LHA becomes an exact degree.
+
+HO229 does not need integral LHA.
+
+For several sights taken close together, it can therefore be convenient to choose ONE common AP and keep it as the plotting-sheet origin.
+
+For each body:
+
+\begin{verbatim}
+    use the same AP
+    calculate that body's exact LHA from the AP
+    run HO229
+    plot its intercept from the same origin
+\end{verbatim}
+
+A different AP is also valid. The intercept must simply be plotted from the AP used for that calculation.
+
+\subsection*{25.\quad PARALLEL RULERS}
+\addcontentsline{toc}{subsection}{25.\ PARALLEL RULERS}
+
+The compass rose gives a direction. The AP does not have to lie at the center of the compass rose.
+
+Parallel rulers allow you to establish Zn on the rose and transfer that same direction through the AP or intercept point.
+
+This demonstrates an important plotting idea:
+
+\begin{verbatim}
+    orientation and position are separate things
+\end{verbatim}
+
+\subsection*{26.\quad PLOTTING TOWARD OR AWAY}
+\addcontentsline{toc}{subsection}{26.\ PLOTTING TOWARD OR AWAY}
+
+From the AP:
+
+\begin{verbatim}
+    Ho > Hc:
+        measure the intercept in the Zn direction -- TOWARD
+\end{verbatim}
+
+\begin{verbatim}
+    Ho < Hc:
+        measure the intercept opposite Zn -- AWAY
+\end{verbatim}
+
+At the intercept point, draw the LOP perpendicular to the azimuth direction.
+
+Label the LOP with the celestial body and observation time.
+
+\subsection*{27.\quad THE TANGENT APPROXIMATION}
+\addcontentsline{toc}{subsection}{27.\ THE TANGENT APPROXIMATION}
+
+The equal-altitude circle is not actually straight. The plotted LOP is its local tangent approximation.
+
+Likewise, the straight azimuth line on a small plotting sheet represents the initial local great-circle direction toward the GP.
+
+Over the small region of an ordinary fix these approximations are excellent.
+
+If the AP is very far from the true position, however:
+
+\begin{verbatim}
+    the equal-altitude circle's curvature matters more
+    the azimuth changes across the region
+    parallel translation becomes less exact
+\end{verbatim}
+
+That is one reason the AP should normally be reasonably close to the DR position.
+
+\section*{SEVENTH PASS -- READING THE ANSWER BACK OFF THE CHART}
+\addcontentsline{toc}{section}{SEVENTH PASS -- READING THE ANSWER BACK OFF THE CHART}
+
+\subsection*{28.\quad LATITUDE IS EASY}
+\addcontentsline{toc}{subsection}{28.\ LATITUDE IS EASY}
+
+One minute of latitude is approximately one nautical mile everywhere.
+
+So if the plotted fix lies 6.3 NM north of the AP:
+
+\begin{verbatim}
+    change in latitude = approximately 6.3 minutes north
+\end{verbatim}
+
+\subsection*{29.\quad LONGITUDE NEEDS A COSINE CORRECTION}
+\addcontentsline{toc}{subsection}{29.\ LONGITUDE NEEDS A COSINE CORRECTION}
+
+Longitude is different because meridians converge toward the poles.
+
+One minute of longitude represents approximately cos(latitude) nautical miles. Therefore, for an east/west displacement dE in nautical miles:
+
+\begin{verbatim}
+    change in longitude, in minutes = dE / cos(latitude)
+\end{verbatim}
+
+At the equator cos(0) = 1, so one minute of longitude is about one NM. At 34 degrees latitude cos(34) is about 0.829, so one minute of longitude spans only about 0.829 NM east-west.
+
+\begin{verbatim}
+                        North
+                          ^
+                          |
+                          |                  * FIX
+                          |                  |
+                          |                  |  dN = 6.3 NM
+                          |                  |
+                     AP   *------------------+------> East
+                          |    dE = 8.29 NM
+                          |
+\end{verbatim}
+
+\begin{verbatim}
+        dLat (minutes) = dN
+        dLon (minutes) = dE / cos(latitude)
+\end{verbatim}
+
+Worked from the figure, at latitude 34 degrees:
+
+\begin{verbatim}
+    dLat = 6.3 minutes north
+    dLon = 8.29 / 0.829 = 10.0 minutes
+\end{verbatim}
+
+The paper is locally measuring physical north/east distance. Latitude and longitude are the geographic coordinates used to report that displacement.
+
+The same conversion handles the intercept itself, if you would rather compute than plot. An intercept I in direction Zn has components:
+
+\begin{verbatim}
+    dN = I cos(Zn)
+    dE = I sin(Zn)
+\end{verbatim}
+
+which then go through the two lines above.
+
+\section*{EIGHTH PASS -- WHY ANY OF IT WORKS}
+\addcontentsline{toc}{section}{EIGHTH PASS -- WHY ANY OF IT WORKS}
+
+\subsection*{30.\quad HO229 AS A LOCAL LINEAR APPROXIMATION}
+\addcontentsline{toc}{subsection}{30.\ HO229 AS A LOCAL LINEAR APPROXIMATION}
+
+For one observation define:
+
+\begin{verbatim}
+    residual = Ho - Hc
+\end{verbatim}
+
+Hc depends on position. At the AP, HO229 also supplies the local direction in which computed altitude increases: toward the body along Zn.
+
+The intercept method therefore has both:
+
+\begin{verbatim}
+    how wrong the predicted altitude is
+    and the local direction in which altitude changes
+\end{verbatim}
+
+It uses those two quantities to replace a curved equal-altitude circle with a local straight tangent constraint. This is why the method works so well near the AP.
+
+\subsection*{31.\quad WHY ITERATION CAN IMPROVE A FIX}
+\addcontentsline{toc}{subsection}{31.\ WHY ITERATION CAN IMPROVE A FIX}
+
+Suppose two LOPs intersect noticeably away from the original AP.
+
+Use that intersection as a new AP and repeat:
+
+\begin{verbatim}
+    recompute LHA for each sight
+    recompute Hc and Zn
+    form new intercepts
+    intersect the new LOPs
+\end{verbatim}
+
+Now the tangent approximations are being made closer to the true intersection of the equal-altitude circles.
+
+Conceptually, this resembles Newton's method or Gauss-Newton:
+
+\begin{verbatim}
+    estimate
+    linearize locally
+    calculate a correction
+    move to the improved estimate
+    linearize again
+\end{verbatim}
+
+Traditional hand navigation normally needs only one pass because the DR/AP is expected to be reasonably close, and normal navigational accuracy does not require solving the nonlinear circle intersections to many decimal places.
+
+\subsection*{32.\quad THE CIRCLE IS FUNDAMENTAL; THE LOP IS A CONVENIENCE}
+\addcontentsline{toc}{subsection}{32.\ THE CIRCLE IS FUNDAMENTAL; THE LOP IS A CONVENIENCE}
+
+Nature gives us circles of equal altitude. The straight LOP is a human computational convenience: a local approximation that makes those enormous circles manageable with tables and paper.
+
+That is why applications such as OpenCPN and Nav48 can hide most of the traditional machinery. A user may enter a DR position, observations, and astronomical data and receive a fix without manually choosing an AP, constructing intercepts, drawing tangent LOPs, or finding a plotting-sheet intersection.
+
+That is not different celestial geometry. The fundamental geometry is still:
+
+\begin{verbatim}
+    each corrected sight defines a circle of equal altitude
+\end{verbatim}
+
+and:
+
+\begin{verbatim}
+    two or more such circles constrain the observer's position
+\end{verbatim}
+
+A computer can solve the curved-circle problem numerically and skip the tangent step entirely. The traditional intercept method was designed to make the same problem practical with printed tables, arithmetic, dividers, parallel rulers, and a plotting sheet.
+
+HO229 intentionally sits between those two worlds. It automates the spherical trigonometry while leaving the intercept and plotting process visible.
+
+\section*{USING THE PROGRAMS}
+\addcontentsline{toc}{section}{USING THE PROGRAMS}
+
+\subsection*{33.\quad INPUT CONVENTIONS}
+\addcontentsline{toc}{subsection}{33.\ INPUT CONVENTIONS}
+
+Two conventions, and it matters which is which.
+
+\begin{verbatim}
+    ANGLES        DD.MMm     degrees and decimal minutes
+    TIME          MM.SS      minutes and whole seconds
+\end{verbatim}
+
+Both are "the integer part is one unit, the fraction is the next unit down", so they read the same way on the keypad. But the fraction means tenths of a minute in an angle and seconds in a time.
+
+\begin{verbatim}
+    angle   45.134   =  45 deg 13.4 min
+    time     3.30    =   3 min 30 sec   (not 3.3 minutes)
+\end{verbatim}
+
+The time convention applies to the Air Almanac interpolation input (minutes into the 10-minute interval) and to the Nautical Almanac time past the hour. Everything else -- Hs, GHA, SHA, Dec, latitude, longitude -- is DD.MMm.
+
+Outputs are ordinary DECIMAL degrees, not DD.MMm. The asymmetry is deliberate: input matches the almanac page, output is what you want for the arithmetic on the plotting sheet.
+
+HO229 uses DD.MMm notation.
+
+This is degrees and minutes packed into a calculator-friendly decimal display. It is NOT ordinary decimal degrees.
+
+Examples:
+
+\begin{verbatim}
+    34 degrees 15.6 minutes North  ->   34.156
+    34 degrees 15.6 minutes South  ->  -34.156
+     8 degrees 00.0 minutes LHA    ->    8.000
+     3 degrees 13.6 minutes North  ->    3.136
+    16 degrees 49.6 minutes South  ->  -16.496
+\end{verbatim}
+
+Be careful:
+
+\begin{verbatim}
+    34.300 means 34 degrees 30.0 minutes
+\end{verbatim}
+
+It does NOT mean 34.300 decimal degrees.
+
+The outputs Hc, Z, and Zn are in ordinary DECIMAL degrees, not DD.MMm. The notation is asymmetric on purpose: input matches the almanac, output is what you want for plotting arithmetic.
+
+\subsection*{34.\quad THE TWO PROGRAMS}
+\addcontentsline{toc}{subsection}{34.\ THE TWO PROGRAMS}
+
+There are two ways to run this on the calculator.
+
+HO229 is the original: it does item 12 and item 14 only. You bring it AP latitude, LHA and declination, and it hands back Hc, Z and Zn. Everything else on the form you do yourself. It is small, it is the one the self-test values in section 37 belong to, and it is a good way to learn because it leaves the whole almanac and plotting process in your hands.
+
+SIGHT is the full walk-through. It follows the form top to bottom -- body, sextant corrections, position, almanac, reduction -- and finishes with Z, Zn and the intercept. SETUP stores the things that do not change between sights (DR position, index correction, height of eye, temperature, pressure) so SIGHT does not ask for them every time.
+
+Run SETUP once when you sit down. Then SIGHT per sight.
+
+SIGHT prompts in form order:
+
+\begin{verbatim}
+    1 AIR  2 NAUT           which almanac you have open
+    1 SUN 2 MOON 3 PLNT 4 STAR
+    1 SEA  2 AH             horizon type
+    Hs DD.MMm
+    (SD and limb, or HP, depending on body)
+    1 STORED  2 TEMP        position from SETUP, or entered now
+    (almanac entries -- see section 35)
+\end{verbatim}
+
+and displays Hc, Z, Zn and the intercept with its T/A label.
+
+\subsection*{35.\quad THE TWO ALMANAC PATHS}
+\addcontentsline{toc}{subsection}{35.\ THE TWO ALMANAC PATHS}
+
+The two books tabulate differently, so SIGHT handles them differently. This is worth understanding because it is where most of the arithmetic hides.
+
+NAUTICAL ALMANAC -- increments and corrections.
+
+The Nautical Almanac tabulates hourly. You do not interpolate between rows; you take the value at the hour and add an increment computed from the body's mean rate, then the v and d corrections for what that mean rate misses:
+
+\begin{verbatim}
+    Sun, planets    GHA + 15 deg/hr        x time past the hour
+    Moon            GHA + 14 deg 19 min/hr x time past the hour
+    Aries           GHA + 15.04107 deg/hr  x time past the hour
+    v-correction    to GHA, Moon and planets, entered in min/hr
+    d-correction    to Dec, all non-star bodies, signed, in min/hr
+\end{verbatim}
+
+Stars take neither v nor d: SHA and declination come from the star list and do not move meaningfully over a day.
+
+The useful shortcut here is that 15 deg/hr is exactly 15 minutes of arc per minute of time. So for the Sun or a planet you can add 15 x (minutes) arc minutes to GHA in your head and be exactly right, not approximately right. It only breaks down for the Moon and for Aries.
+
+AIR ALMANAC -- linear interpolation.
+
+The Air Almanac tabulates every 10 minutes, so interpolation between two adjacent rows is both possible and accurate. SIGHT asks for the minutes into the 10-minute interval (MM.SS), then GHA at that row and the next, and does the same for declination. Over 10 minutes declination barely moves, so the linear treatment is more than adequate.
+
+If you have already interpolated on paper, or your sight falls on a tabulated row, take the EXACT option instead and enter total GHA and total Dec directly. That is the faster path when the almanac is already open in front of you.
+
+\subsection*{36.\quad QUICK WORKFLOW}
+\addcontentsline{toc}{subsection}{36.\ QUICK WORKFLOW}
+
+\begin{verbatim}
+     1. Identify and observe the celestial body.
+     2. Record exact UTC and sextant altitude.
+     3. Correct Hs to obtain Ho.
+     4. Obtain GHA and declination for the observation time.
+     5. Choose an AP near the DR position.
+     6. Compute LHA from GHA and AP longitude.
+     7. Enter AP latitude, LHA, and declination into HO229.
+     8. Record Hc and Zn.
+     9. Compute intercept = |Ho - Hc|.
+    10. Ho > Hc -> Toward; Ho < Hc -> Away.
+    11. Plot the intercept along Zn.
+    12. Draw the LOP perpendicular to Zn.
+    13. Repeat with another body.
+    14. Intersect the LOPs.
+    15. Convert the plotted north/east displacement from the AP back into
+        latitude/longitude, including the longitude cosine correction.
+\end{verbatim}
+
+\subsection*{37.\quad SELF-TEST VALUES}
+\addcontentsline{toc}{subsection}{37.\ SELF-TEST VALUES}
+
+Run these after transferring the program to a calculator, or after rebuilding it. All inputs are in DD.MMm; all outputs are decimal degrees. Values are shown to more places than the display gives, so compare the leading digits.
+
+\begin{verbatim}
+    AP lat     LHA       Dec         Hc          Z         Zn
+    ------------------------------------------------------------------
+    34.000     8.000     20.000      74.3047     151.090    208.910
+    34.000   352.000     20.000      74.3047     151.090    151.090
+   -34.000     8.000    -20.000      74.3047     151.090    331.090
+   -34.000   300.000     20.000      11.4355     123.872     56.128
+     0.000    90.000      0.000       0.0000      90.000    270.000
+\end{verbatim}
+
+Notes on what each case is checking:
+
+\begin{verbatim}
+    Rows 1 and 2 are mirror images about the meridian. Same Hc, same Z,
+    and Zn reflected: 208.910 and 151.090 sum to 360.
+\end{verbatim}
+
+\begin{verbatim}
+    Row 3 is row 1 reflected across the equator. Hc and Z are unchanged
+    because Z is measured from the elevated pole, but Zn moves from the
+    southwest to the northwest. This is the case that a mishandled
+    quadrant rule gets wrong, so it is the most valuable row here.
+\end{verbatim}
+
+\begin{verbatim}
+    Row 5 is a degenerate check: standing on the equator with a body of
+    zero declination at LHA 90, the body is exactly on the horizon due
+    west.
+\end{verbatim}
+
+\subsection*{38.\quad PRACTICAL CHECKLIST}
+\addcontentsline{toc}{subsection}{38.\ PRACTICAL CHECKLIST}
+
+Before accepting a sight reduction, check:
+
+\begin{verbatim}
+    Is the UTC correct?
+    Is the celestial body correct?
+    Is Hs copied correctly?
+    Are index and dip signs correct?
+    Was the correct limb used?
+    Were the applicable altitude corrections handled correctly?
+    Is the final Ho correct?
+    Are GHA and declination for the correct date and exact time?
+    Are N/S and E/W signs correct?
+    Is LHA normalized correctly?
+    Did HO229 receive DD.MMm rather than decimal degrees?
+    Was the intercept formed from Ho versus Hc?
+    Is Toward/Away correct?
+    Was Zn used for the azimuth direction?
+    Is the LOP perpendicular to the azimuth direction?
+    Was the intercept plotted from the same AP used in the calculation?
+    Was longitude corrected for cos(latitude) when reading the final fix?
+\end{verbatim}
+
+\section*{FILES AND TOOLCHAIN}
+\addcontentsline{toc}{section}{FILES AND TOOLCHAIN}
+
+\subsection*{39.\quad ARCHIVE CONTENTS}
+\addcontentsline{toc}{subsection}{39.\ ARCHIVE CONTENTS}
+
+\begin{verbatim}
+    SIGHT.ASC
+        Full walk-through program. ASCII85P source, the authoritative copy.
+\end{verbatim}
+
+\begin{verbatim}
+    SETUP.ASC
+        Stores DR position, IC, height of eye, temperature, pressure.
+\end{verbatim}
+
+\begin{verbatim}
+    SEA.ASC
+        Hs to Ho on its own, sea horizon. Computes dip from height of eye
+        and refraction from temperature and pressure (Bennett), then applies
+        semidiameter, limb, augmentation and parallax by body.
+\end{verbatim}
+
+\begin{verbatim}
+    AIR.ASC
+        Hs to Ho on its own, Air Almanac style: you supply dip, refraction
+        and moon parallax from the tables rather than having them computed.
+\end{verbatim}
+
+\begin{verbatim}
+    HO229.85p
+        The reduction-only program, ready to transfer.
+        md5 22e461d58e2f7d8c1f93b23e67017d8f
+\end{verbatim}
+
+\begin{verbatim}
+    sight-reduction-form.pdf
+        Printable form, instructions on the back.
+\end{verbatim}
+
+\begin{verbatim}
+    sight-reduction-form.tex
+        LaTeX source for the form.
+\end{verbatim}
+
+\begin{verbatim}
+    ESCAPES.txt
+        ASCII85P escape conformance record for SIGHT and SETUP.
+\end{verbatim}
+
+\begin{verbatim}
+    README_V7.txt
+        Change log for the current SIGHT version.
+\end{verbatim}
+
+\begin{verbatim}
+    CELNAV_PRIMER.txt
+        This document.
+\end{verbatim}
+
+Build SIGHT and SETUP with ASCII85P.EXE. They are plain ASCII with escape sequences, not tokenized binaries -- see the next section.
+
+\subsection*{40.\quad TOKENIZERS AND THE TWO TRAPS}
+\addcontentsline{toc}{subsection}{40.\ TOKENIZERS AND THE TWO TRAPS}
+
+The TI-85 stores programs either as tokenized binary or as plain text with a 0x00 marker and 0xD6 line separators. Both run. ASCII85P.EXE produces the plain-text form from .ASC source; the Python ti85bas.py produces the tokenized form from .bas source.
+
+ASCII85P uses backslash escapes for the characters that have no ASCII spelling. The ones SIGHT and SETUP need:
+
+\begin{verbatim}
+    \->\        store
+    \>=\        greater than or equal
+    \sin^-1\    arcsine
+    \cos^-1\    arccosine
+\end{verbatim}
+
+There is no escape for the == comparison token, which leads to the first trap.
+
+\subsection*{TRAP 1 -- NEVER WRITE A BARE "=" AS A TEST.}
+
+\begin{verbatim}
+    If B=1        WRONG. This is the equation-definition token 0x3F.
+    If B==1       right. This is the comparison token 0x50.
+\end{verbatim}
+
+A bare "=" does not compare. The If takes its branch unconditionally, every time, and the program still runs and still prints plausible numbers. This was confirmed on a real ROM: with B set to 2, "If B=1 / Disp 111" prints 111.
+
+Because ASCII85P has no spelling for ==, SIGHT avoids equality entirely and uses only operators the escape table covers:
+
+\begin{verbatim}
+    If B\>=\4              instead of  If B=4
+    If abs(B-2)<.5         instead of  If B=2
+    If N\>=\360            instead of  If N=360
+\end{verbatim}
+
+TRAP 2 -- ti85bas.py PRODUCES BROKEN Lbl/Goto.
+
+Verified on the ROM. A program built by ti85bas.py containing
+
+\begin{verbatim}
+    Disp 111 / Goto A / Disp 222 / Lbl A / Disp 333
+\end{verbatim}
+
+prints 111 and then stops -- the Goto never finds the label and execution runs off the end of the program. The same program in plain-text form prints 111 and 333, correctly. The label encoding ti85bas.py emits is wrong and has not been identified.
+
+So: use ASCII85P for anything containing Goto. SIGHT and SETUP go that route and are unaffected. ti85bas.py remains fine for straight-line programs like
+
+\subsection*{HO229.}
+
+\subsection*{41.\quad THE STO TOKEN}
+\addcontentsline{toc}{subsection}{41.\ THE STO TOKEN}
+
+The correct TI-85 token byte for the store arrow is:
+
+\begin{verbatim}
+    STO / -> = 0x0B
+\end{verbatim}
+
+Byte 0x0A is >Frac, not STO.
+
+An earlier development copy had these confused. The symptom is unmistakable once you know it: the program halts and the calculator displays a line such as
+
+\begin{verbatim}
+    1>Frac S
+\end{verbatim}
+
+where the source says
+
+\begin{verbatim}
+    1->S
+\end{verbatim}
+
+The tokenizer shipped with the current package contains the corrected mapping. If you ever see >Frac appear in a listing you did not write, this is why.
+
+\subsection*{42.\quad PROGRAM VALIDATION}
+\addcontentsline{toc}{subsection}{42.\ PROGRAM VALIDATION}
+
+HO229's azimuth was checked against an independent horizon-frame azimuth calculation over 300,000 random latitude, declination and LHA combinations, with no mismatches and a worst-case difference of about 4e-9 degrees.
+
+SIGHT was checked two ways. An interpreter with TI-85 single-line If semantics walked all eight body/almanac combinations and confirmed each one prompts for the right things -- before the V5 fix all eight produced an identical prompt sequence, which is how the routing bug was found. The reduction math was then checked against the same independent azimuth formula, agreeing to zero.
+
+Both were then run on a real TI-85 ROM under a headless emulator, which is where the bare-"=" behaviour and the ti85bas.py label bug were confirmed rather than inferred.
+
+As with any navigation aid, important work should still be checked by an independent method when practical. Run the self-test values in section 37 after any rebuild.
+
+\subsection*{FINAL MENTAL MODEL}
+
+If you remember nothing else, remember this:
+
+\begin{verbatim}
+    TIME + ALMANAC
+        tell you where the celestial body is.
+\end{verbatim}
+
+\begin{verbatim}
+    THE SEXTANT
+        tells you what altitude you actually observed: Ho.
+\end{verbatim}
+
+\begin{verbatim}
+    THE ASSUMED POSITION
+        gives you a nearby place from which to make a prediction.
+\end{verbatim}
+
+\begin{verbatim}
+    HO229
+        predicts Hc and Zn from that AP.
+\end{verbatim}
+
+\begin{verbatim}
+    Ho - Hc
+        tells how far the true circle of equal altitude lies from the
+        computed one.
+\end{verbatim}
+
+\begin{verbatim}
+    Zn
+        tells the local direction toward the body's GP.
+\end{verbatim}
+
+\begin{verbatim}
+    THE INTERCEPT METHOD
+        replaces a tiny piece of the enormous equal-altitude circle by a
+        straight tangent LOP.
+\end{verbatim}
+
+\begin{verbatim}
+    A SECOND BODY
+        gives another LOP.
+\end{verbatim}
+
+\begin{verbatim}
+    THE INTERSECTION
+        gives the fix.
+\end{verbatim}
+
+\begin{verbatim}
+    THE PLOTTING SCALE
+        converts that local north/east displacement back into latitude and
+        longitude, including the cosine correction for longitude.
+\end{verbatim}
+
+Or in one sentence:
+
+\begin{verbatim}
+    The almanac tells where the body is; HO229 predicts what you would see
+    from an assumed position; the sextant tells what you actually saw; and
+    the difference moves you from the assumed circle toward the real one.
+\end{verbatim}
+
+\subsection*{END}
+
+HO229 is intentionally not a black-box celestial-navigation system.
+
+Its purpose is to collapse the large paper sight-reduction tables into a small calculator program while leaving enough of the classical method visible that the navigator can understand what the numbers mean.
+
+\end{document}

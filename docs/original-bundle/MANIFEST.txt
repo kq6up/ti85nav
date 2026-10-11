@@ -1,0 +1,65 @@
+TI-85 CELESTIAL NAVIGATION PACKAGE
+==================================
+Assembled 29 September 2026. All files current as of this date.
+
+PROGRAMS -- convert with ASCII85P.EXE, see TRANSFER.txt
+-------------------------------------------------------
+    SIGHT.ASC     V8    e9df12029451ca23c5f8951534dba464
+        Full walk-through. Follows the reduction sheet top to bottom and
+        finishes with Hc, Z, Zn and the intercept. Refraction uses the
+        OpenCPN Celestial Navigation plugin model, so SIGHT and the plugin
+        agree exactly when you cross-check.
+
+    SIGHT.85P     V8    2cc7a70850f352f1bcc09d4d469ea668
+        Pre-converted binary. Verified line by line against SIGHT.ASC --
+        348 lines, zero mismatches, checksum validates.
+
+    SETUP.ASC           9cd5fa19e66e0a9f962057c8c26017a7
+        DR position, index correction, height of eye, temperature,
+        pressure. Run once before SIGHT or SIGHT throws ERROR 14.
+
+    SEA.ASC             5ce1bc530415890e89ab4b99a475f24e
+        Hs to Ho on its own, sea horizon. Computes dip and refraction
+        (Bennett) from height of eye, temperature and pressure.
+
+    AIR.ASC             4a2d88971f5189137dbd2633e2e32896
+        Hs to Ho on its own, Air Almanac style -- dip, refraction and moon
+        parallax come from the tables.
+
+    HO229.ASC     V1.3  c9137cb6a51e0f2ee91cb7d7f80a59c0
+        Sight reduction only: AP latitude, LHA and declination in, Hc in
+        DD.MMm and Z and Zn in degrees out. Drop-in replacement for the
+        Pub. 229 table lookup when you are working the paper form.
+
+DOCUMENTATION
+-------------
+    CELNAV_PRIMER.txt / .tex / .pdf
+        The primer. Eight passes through the same material, each deeper
+        than the last, plus notes on the programs.
+
+    sight-reduction-form.pdf / .tex
+        Printable form, line-by-line instructions on the back.
+
+    TRANSFER.txt
+        How to get a program onto the calculator, written for someone who
+        has forgotten the whole path. Read this first if the batteries
+        died and you are starting over.
+
+    ESCAPES.txt
+        ASCII85P escape conformance record.
+
+    README_V8.txt / BUNDLE_NOTES.txt / SIGHT_V8_VERIFICATION.txt
+        Change notes for SIGHT V8.
+
+CHANGE IN THIS PACKAGE
+----------------------
+HO229 V1.3 only. The declination prompt now reads
+
+    TOTAL DEC N+ S-
+    d-CORR APPLIED
+
+rather than a bare "DEC", so it is unambiguous that the program wants the
+total declination from item 10 of the form -- tabulated value plus the
+d-correction -- and not the raw hourly figure off the daily page. The
+arithmetic is untouched; all five self-test values in the primer are
+unchanged.

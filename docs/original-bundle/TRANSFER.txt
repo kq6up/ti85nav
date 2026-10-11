@@ -1,0 +1,138 @@
+HOW TO GET A PROGRAM ONTO THE TI-85
+===================================
+Written 29 September 2026, for future me.
+
+If the batteries died and the calculator is empty, this is the procedure
+that works. It is convoluted. Every step is there for a reason and the
+reasons are given below, because the path looks insane otherwise and the
+temptation will be to "simplify" it and lose another weekend.
+
+
+THE SHORT VERSION
+-----------------
+
+    1. Start from the .ASC source (NOT .bas, NOT .85p).
+    2. FTP the .ASC up to the DOS box.
+    3. Run ASCII85P.EXE on it there. Out comes a .85P.
+    4. FTP the .85P back down to the NetBSD box.
+    5. On the calculator: 2nd, x-Var, F2 (RECV). It says Waiting...
+    6. On NetBSD:  tilp --calc=ti85 --cable=SilverLink --port=1
+       and send the .85P.
+
+That is it. Steps 2-4 exist only because ASCII85P is a DOS program.
+
+
+WHY EACH PIECE IS THERE
+-----------------------
+
+ASCII85P.EXE, not the Python tokenizer.
+    Two reasons. First, it validates: it refuses to convert malformed
+    source, so errors surface on the DOS box instead of as a mysterious
+    failure at the calculator. Second, everything it has produced has
+    transferred successfully, which is not true of the Python tokenizer's
+    output. Prefer it.
+
+    ti85bas.py also has at least two known bugs -- see GOTCHAS.
+
+TiLP2, not anything else.
+    It is the only thing that will drive the SilverLink cable.
+
+NetBSD, not the other boxes.
+    It is the only host TiLP2 works on reliably so far.
+
+The SilverLink cable.
+    Officially this cable does not support the TI-85 at all. It works
+    perfectly anyway on files converted by ASCII85P. Do not let anyone
+    (including a future AI) talk you out of it on the grounds that it
+    should not work.
+
+The black DB9 GraphLink.
+    Worked once, on a setup I did not write down. The black cable has no
+    microcontroller -- the PC software bit-bangs the link protocol through
+    the serial port's control lines -- so it needs a real UART and hates
+    virtual serial ports. If you ever want a second path, the GREY cable
+    is the better bet: it has a PIC inside that handles the timing in
+    hardware, so it survives a USB-to-serial adapter. Software for that
+    route would be TI-GRAPH LINK 95/98/NT (TI Connect does NOT support the
+    TI-85) or TiLP for Windows.
+
+
+CALCULATOR SIDE, IN DETAIL
+--------------------------
+
+The TI-85 does NOT receive automatically. If it is not already waiting,
+every transfer times out and looks like a cable fault.
+
+    2nd
+    x-Var          opens the LINK menu (SEND / RECV)
+    F2             RECV -- the screen says Waiting...
+
+Then start the send on the computer. When it lands the calculator shows
+the variable name and Done.
+
+To run a program afterwards:  PRGM, F1 (NAMES), then its soft key, ENTER.
+
+
+THE FILES
+---------
+
+Send these. Checksums are of the .ASC sources as shipped.
+
+    SIGHT.ASC    e9df12029451ca23c5f8951534dba464   full walk-through (V8)
+    SETUP.ASC    9cd5fa19e66e0a9f962057c8c26017a7   persistent defaults
+    SEA.ASC      5ce1bc530415890e89ab4b99a475f24e   Hs to Ho, sea horizon
+    AIR.ASC      4a2d88971f5189137dbd2633e2e32896   Hs to Ho, Air Almanac
+    HO229.ASC    c9137cb6a51e0f2ee91cb7d7f80a59c0   V1.3 reduction only
+
+SETUP must be run once on the calculator before SIGHT, or SIGHT will
+throw ERROR 14 UNDEFINED looking for the stored position and conditions.
+
+After loading, check HO229 against the self-test table in the primer
+(section 37). If those five rows come out right, the transfer was clean
+and the program is intact.
+
+
+GOTCHAS
+-------
+
+ERROR 35 LINK / TRANSMISSION ERROR.
+    Header and name arrive, the data phase dies partway. Seen on some
+    files and not others and never fully explained. Size is NOT the
+    cause -- that theory was tested and falsified. If it happens, the
+    first thing to try is a different source file, not a different cable.
+
+ERROR 14 UNDEFINED when running SIGHT.
+    SETUP has not been run yet. Run it.
+
+Nothing happens at all on send.
+    The calculator is not in RECV. See the calculator section above.
+
+ti85bas.py (the Python tokenizer) -- two known bugs.
+    1. It writes the header-length field at offset 0x37 as 6+len(name);
+       correct is 4+len(name). A wrong value there collides with the
+       TI-83+ marker and libtifiles silently discards the file before any
+       USB traffic, with no error message.
+    2. Its Lbl/Goto encoding does not work. A tokenized Goto never finds
+       its label and execution runs off the end of the program. Verified
+       on a real ROM. Programs with no labels (HO229) are unaffected.
+    check85p.py validates and --fix repairs problem 1.
+
+The DOS box and virtual serial ports.
+    DOS link software bit-bangs the port directly and is very
+    timing-sensitive. A virtualised COM port cannot reproduce that. This
+    is only relevant if you go back to the black cable -- it does not
+    affect the ASCII85P step, which is pure file conversion and touches
+    no hardware.
+
+
+IF THE WHOLE PATH IS GONE
+-------------------------
+
+If the DOS box is unavailable, the .ASC files are plain ASCII text with
+backslash escapes (\->\ for store, \>=\, \sin^-1\, \cos^-1\). They can be
+typed straight into the calculator's own program editor. HO229 is about
+50 lines and is the one worth typing by hand in an emergency; it does the
+sight reduction, which is the part the tables would otherwise do.
+
+Everything else -- almanac, sextant corrections, plotting -- is paper work
+and does not need the calculator at all.

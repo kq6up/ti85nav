@@ -1,0 +1,247 @@
+% Sight Reduction Form + instructions
+% Companion to the HO229 sight reduction program for the TI-85.
+% Build:  pdflatex sight-reduction-form.tex
+% Only stock LaTeX packages are used; no external fonts or files required.
+
+\documentclass[10pt]{article}
+
+\usepackage[letterpaper,top=0.6in,bottom=0.6in,left=0.7in,right=0.7in]{geometry}
+\usepackage{array}
+\usepackage{tabularx}
+\usepackage{textcomp}
+\usepackage{amsmath}
+\usepackage{fancyhdr}
+\usepackage{enumitem}
+\usepackage{lastpage}
+
+\pagestyle{fancy}
+\fancyhf{}
+\renewcommand{\headrulewidth}{0pt}
+\fancyfoot[L]{\footnotesize Sight Reduction Form}
+\fancyfoot[C]{\footnotesize\thepage\ of \pageref{LastPage}}
+\fancyfoot[R]{\footnotesize Companion to \texttt{HO229} (TI-85)}
+
+% ---------------------------------------------------------------- helpers
+\newcommand{\dg}{\ensuremath{^\circ}}
+\newcommand{\mn}{\ensuremath{'}}
+
+% row strut: sets the writing height of every blank entry row
+\newcommand{\rowstrut}{\rule[-1.0ex]{0pt}{3.6ex}}
+
+% section heading bar
+\newcommand{\secbar}[1]{%
+  \noindent\fbox{\begin{minipage}{\dimexpr\textwidth-2\fboxsep-2\fboxrule\relax}%
+  \textbf{#1}%
+  \end{minipage}}\vspace{0.4ex}%
+}
+
+% one entry row: \fldrow{item no.}{description}
+\newcommand{\fldrow}[2]{#1 & #2 & \rowstrut \\ \hline}
+% a sub-item (indented, no item number)
+\newcommand{\subrow}[1]{ & \hspace{1.2em}#1 & \rowstrut \\ \hline}
+% a total row (bold)
+\newcommand{\totrow}[1]{ & \hspace{1.2em}\textbf{#1} & \rowstrut \\ \hline}
+
+% framed full-width note box (avoids nesting tabular inside a tabularx X cell)
+\newcommand{\notebox}[1]{%
+  \noindent\fbox{\begin{minipage}{\dimexpr\textwidth-2\fboxsep-2\fboxrule\relax}%
+  #1%
+  \end{minipage}}%
+}
+
+\newenvironment{formtable}{%
+  \renewcommand{\arraystretch}{1.0}%
+  \noindent\begin{tabular}{|c|p{4.7in}|p{1.6in}|}\hline
+}{%
+  \end{tabular}\vspace{0.8ex}%
+}
+
+\setlength{\parindent}{0pt}
+
+% ================================================================
+\begin{document}
+
+% ------------------------------------------------ PAGE 1: THE FORM
+\begin{center}
+  {\Large\bfseries Sight Reduction Form}\\[0.3ex]
+  {\footnotesize Vessel / Observer \rule[-0.5ex]{2.0in}{0.4pt}\qquad
+   Sight No. \rule[-0.5ex]{0.7in}{0.4pt}}
+\end{center}
+\vspace{-0.6ex}
+
+\secbar{Section I: Observations and Corrections}
+\begin{formtable}
+  \fldrow{1.}{Celestial Body}
+  \fldrow{2.}{\textbf{Apparent Altitude} \quad Sextant Altitude (hs)}
+  \subrow{$\pm$ Index Correction}
+  \subrow{$-$ Dip Correction}
+  \totrow{Total Apparent Altitude (ha)}
+  \fldrow{3.}{\textbf{Observed Altitude} \quad $\pm$ Altitude Correction}
+  \subrow{$\pm$ Additional Corrections (Atmospheric)}
+  \subrow{$\pm$ Additional Corrections (Mars / Venus / Moon)}
+  \totrow{Total Observed Altitude (ho)}
+\end{formtable}
+
+\secbar{Section II: Time and Dead Reckoning}
+\begin{formtable}
+  \fldrow{4.}{Date (GMT)}
+  \fldrow{5.}{DR Latitude}
+  \fldrow{6.}{DR Longitude}
+  \fldrow{7.}{Time (GMT)}
+\end{formtable}
+
+\secbar{Section III: Local Hour Angle and Declination}
+\begin{formtable}
+  \fldrow{8.}{\textbf{GHA} \quad Tabulated GHA}
+  \subrow{$+$ GHA Increment}
+  \subrow{$+$ SHA (stars) \emph{or} v-correction (Moon / planets, when applicable)}
+  \totrow{Total GHA}
+  \fldrow{9.}{\textbf{LHA} \quad (a) Choose Assumed Longitude so LHA minutes $=00.0\mn$}
+  \subrow{{\footnotesize W: a-minutes $=$ GHA minutes, LHA $=$ GHA$-$a. \quad E: a-minutes $=60.0\mn-$GHA minutes, LHA $=$ GHA$+$a.}}
+  \subrow{(b) Normalize: $+360$\dg{} if LHA $<0$\dg; $-360$\dg{} if LHA $\geq360$\dg}
+  \totrow{Total LHA \quad {\footnotesize (record normalized value, $0$\dg{} to $<360$\dg)}}
+  \fldrow{10.}{\textbf{Declination} \quad Tabulated Dec. \quad {\footnotesize (d-corr'n factor: \rule[-0.4ex]{0.7in}{0.4pt})}}
+  \subrow{$\pm$ d-correction}
+  \totrow{Total Declination (Dec.)}
+  \fldrow{11.}{\textbf{Assumed Latitude} \quad Same / Contrary (compared to Dec.\ hemisphere)}
+\end{formtable}
+
+\secbar{Section IV: Determining a Line of Position}
+\begin{formtable}
+  \fldrow{12.}{\textbf{Computed Altitude} \quad Tabulated hc \quad {\footnotesize (d: \rule[-0.4ex]{0.7in}{0.4pt})}}
+  \subrow{$\pm$ Declination Increment (Dec.\ minutes $/\,60\times$ d)}
+  \totrow{Total Computed Altitude (hc)}
+  \fldrow{13.}{\textbf{Altitude Intercept} \quad (ho or hc) whichever is \emph{larger} \quad {\footnotesize ho $=$ I.3}}
+  \subrow{$-$ (ho or hc) whichever is \emph{smaller} \quad {\footnotesize hc $=$ IV.12}}
+  \totrow{( T / A ) Intercept \quad {\footnotesize (Toward if ho $>$ hc, Away if ho $<$ hc)}}
+  \fldrow{14.}{\textbf{Azimuth Angle (Z)}}
+  \fldrow{15.}{\textbf{Azimuth (Zn)}}
+\end{formtable}
+
+\vspace{-0.2ex}
+\notebox{%
+\textbf{Zn from Z --- quadrant rules}\\[0.6ex]
+\begin{tabular}{@{}l@{\hspace{1.5em}}l@{\hspace{2.5em}}l@{}}
+\textbf{N Lat.:} & LHA $>180$\dg: \ Zn $=$ Z & LHA $<180$\dg: \ Zn $=360$\dg$-$Z\\[0.2ex]
+\textbf{S Lat.:} & LHA $>180$\dg: \ Zn $=180$\dg$-$Z & LHA $<180$\dg: \ Zn $=180$\dg$+$Z\\
+\end{tabular}}
+
+
+\clearpage
+\newgeometry{top=0.45in,bottom=0.45in,left=0.65in,right=0.65in}
+\small\linespread{0.95}\selectfont
+
+% ------------------------------------- PAGE 2: HOW TO FILL IT OUT
+\begin{center}
+  {\large\bfseries How to Fill Out the Sight Reduction Form}
+\end{center}
+\vspace{0.4ex}
+
+The form reduces a sextant reading to a \emph{line of position} (LOP): a line
+somewhere on which the observer must lie. It compares the altitude you actually
+measured (\textbf{ho}) against the altitude you \emph{would have} measured from an
+assumed position (\textbf{hc}). That difference, in nautical miles, is the
+\textbf{intercept}; the direction to the body is the \textbf{azimuth}. One sight
+gives one LOP; two or more crossing LOPs give a fix.
+
+\vspace{0.5ex}
+\textbf{Angle notation.} Enter angles as degrees and decimal minutes
+(e.g.\ $45\dg\,13.4\mn$). \texttt{HO229} takes the same thing compressed to
+\texttt{DD.MMm}: $45\dg\,13.4\mn$ is keyed \texttt{45.134}; LHA as \texttt{DDD.MMm}.
+
+\vspace{0.8ex}
+\textbf{Section I --- Observations and Corrections}
+\begin{description}[leftmargin=2.4em,style=nextline,itemsep=0.1ex,topsep=0.2ex,parsep=0pt]
+\item[1. Celestial body.] Sun (specify lower or upper limb), Moon, a planet, or a
+  named star. This determines which correction tables apply later.
+\item[2. Apparent altitude.] Start with the raw sextant altitude \textbf{hs}.
+  Apply the \emph{index correction} for your sextant's own error (on the arc is
+  subtractive, off the arc additive), then \emph{dip} for your height of eye,
+  which is always subtractive. The result is \textbf{ha}.
+\item[3. Observed altitude.] Apply the main altitude correction --- refraction,
+  semi-diameter, parallax --- from the almanac's critical tables, entered with ha.
+  Add the atmospheric correction if temperature or pressure are non-standard, and
+  the extra correction for Mars, Venus, or the Moon where it applies. The result,
+  \textbf{ho}, is the true altitude of the body's centre above the celestial
+  horizon.
+\end{description}
+
+\textbf{Section II --- Time and Dead Reckoning}
+\begin{description}[leftmargin=2.4em,style=nextline,itemsep=0.1ex,topsep=0.2ex,parsep=0pt]
+\item[4--7. Date, DR position, time.] Record GMT (UT) to the second --- four seconds
+  of time is a nautical mile of longitude at the equator. The DR position is your
+  best estimate at the moment of the sight; you round it to get the assumed
+  position in items 9 and 11.
+\end{description}
+
+\textbf{Section III --- Local Hour Angle and Declination}
+\begin{description}[leftmargin=2.4em,style=nextline,itemsep=0.1ex,topsep=0.2ex,parsep=0pt]
+\item[8. GHA.] Take the tabulated GHA for the whole hour from the daily pages, add
+  the increment for the minutes and seconds. For a star, add its SHA to the GHA of
+  Aries; for the Moon, apply the v-correction.
+\item[9. LHA.] Choose the assumed longitude so the resulting LHA has $00.0\mn$ of
+  arc. West: give it the same minutes as GHA, then LHA $=$ GHA $-$ a. East: give it
+  $60.0\mn-$GHA minutes, then LHA $=$ GHA $+$ a. Normalize afterwards --- add
+  $360\dg$ if negative, subtract $360\dg$ if $360\dg$ or more. W and E are
+  conditions telling you which operation to perform, not quantities to solve for.
+\item[10. Declination.] Tabulated declination for the hour, plus the d-correction
+  for the minutes. Note carefully whether it is North or South.
+\item[11. Assumed latitude.] Round the DR latitude to a whole degree. Mark
+  \emph{Same} if the assumed latitude and the declination are in the same
+  hemisphere, \emph{Contrary} if opposite --- the tables are laid out in those two
+  cases and it is an easy place to go wrong.
+\end{description}
+
+\textbf{Section IV --- Determining a Line of Position}
+\begin{description}[leftmargin=2.4em,style=nextline,itemsep=0.1ex,topsep=0.2ex,parsep=0pt]
+\item[12. Computed altitude.] Enter Pub.\ 229 with LHA, assumed latitude, and
+  declination; take out tabulated hc, d, and Z. Apply the declination increment
+  (the odd minutes of declination, times d, divided by 60) to get \textbf{hc}.
+\item[13. Altitude intercept.] Subtract the smaller of ho and hc from the larger;
+  one minute of arc is one nautical mile. Label it \textbf{T} (Toward) if ho is
+  greater, \textbf{A} (Away) if hc is greater --- \emph{Ho Mo To}, ho more, toward.
+\item[14. Azimuth angle Z.] From the same table entry. Z is measured from the
+  \emph{elevated pole} --- the pole nearer to you --- and runs $0\dg$ to $180\dg$
+  east or west.
+\item[15. Azimuth Zn.] Convert Z to a true bearing $0\dg$--$360\dg$ using the
+  quadrant rules boxed at the foot of page 1. This is the step the rules exist for:
+  Z alone does not say which side of the meridian the body lies on, and in southern
+  latitudes it is measured from the south pole rather than the north.
+\end{description}
+
+\textbf{Plotting.} From the assumed position, draw the azimuth line along Zn. Step
+off the intercept along it --- toward the body or away as labelled --- and mark that
+point. The LOP is the perpendicular to the azimuth through that point. Repeat with a
+second body; the crossing is your fix.
+
+\vspace{0.8ex}
+\hrule
+\vspace{0.6ex}
+
+\textbf{Using the \texttt{HO229} program in place of the tables}
+
+\vspace{0.4ex}
+The program computes items 12 and 14 directly and does item 15 for you. Run it and
+enter, in \texttt{DD.MMm} notation:
+
+\begin{description}[leftmargin=2.4em,style=nextline,itemsep=0pt,topsep=0.2ex,parsep=0pt]
+\item[\texttt{LAT N+ S-}] the assumed latitude from item 11; negative for South.
+\item[\texttt{LHA DDD.MMm}] the total LHA from item 9.
+\item[\texttt{DEC N+ S-}] the total declination from item 10; negative for South.
+\end{description}
+
+It returns \texttt{HC}, \texttt{Z}, and \texttt{ZN} in decimal degrees.
+\texttt{HC} goes straight into item 12 --- there is no declination increment to
+apply, because the program uses the exact declination rather than a tabulated
+whole degree. \texttt{Z} is reported from the elevated pole, in the same sense as
+Pub.\ 229, so it goes in item 14 and the quadrant rules on page 1 apply to it
+unchanged. \texttt{ZN} is item 15, already converted --- work item 15 by hand
+anyway the first few times and check that the two agree.
+
+\vspace{0.6ex}
+Because the program needs no whole-degree entering arguments, you may use your actual
+DR position and exact LHA instead of an assumed position --- but then plot from the
+DR, consistently across every sight in a round. Sections I--III are unchanged: the
+program replaces the table lookup, and nothing else.
+
+\end{document}

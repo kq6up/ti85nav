@@ -1,0 +1,47 @@
+ASCII85P ESCAPE CONFORMANCE -- SIGHT V5 / SETUP
+===============================================
+
+Escapes used in these two files, all present in the TI escape table:
+
+    \->\        store
+    \>=\        greater-or-equal
+    \sin^-1\    arcsine
+    \cos^-1\    arccosine
+
+\START\ \STOP\ \NAME= \FILE= \COMMENT= are ASCII85P file directives, not
+token escapes, so they are not in the character table.
+
+Checked and clean:
+  - no unescaped >=, <=, <>, ->, sin^-1, cos^-1, tan^-1, sqrt, 10^
+  - no escape used that is absent from the table
+
+WHY BARE SINGLE LETTERS ARE SAFE AS VARIABLES
+---------------------------------------------
+The table assigns escapes to the tokens that would otherwise collide with
+ordinary letters:
+
+    E exponent  is  \E\      so a bare E is the variable E (eye height)
+    transpose   is  \T\      so a bare T is the variable T (temperature)
+    degree mark is  \deg\    so a bare D is the variable D
+
+That is what makes "1.76*E^.5" unambiguous: the escape, not the letter,
+selects the special token.
+
+EQUALITY
+--------
+The table lists \>=\, \<=\ and \<>\ but has no entry for the == test
+token.  V5 therefore uses no equality comparison anywhere.  Integer
+equality is expressed with operators the table does cover:
+
+    If B=2      ->   If abs(B-2)<.5
+    If B=4      ->   If B\>=\4
+    If N=360    ->   If N\>=\360
+
+A bare "=" is the equation-definition token 0x3F, not the comparison
+0x50, which is the bug V5 fixes.  Do not reintroduce it.
+
+NEGATION
+--------
+The table gives \(-)\ for unary negation.  These files instead use the
+"0-x" idiom inherited from the original source ("0-1\->\F", "0-S\->\Y").
+Both work; \(-)\ is the idiomatic spelling if you ever rewrite those.

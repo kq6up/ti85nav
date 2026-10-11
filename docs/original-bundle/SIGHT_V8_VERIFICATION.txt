@@ -1,0 +1,35 @@
+SIGHT latest-source verification
+===============================
+
+Verified on 2026-09-09.
+
+Uploaded binary: SIGHT.85p
+Latest source available in this project: Claude V7 SIGHT.ASC (from files (11).zip / TI85_SIGHT_UNIFIED_V7.zip)
+
+Method:
+- Parsed the TI-85 .85p container and extracted the tokenized SIGHT program.
+- Converted the V7 ASCII85P source escapes to their equivalent TI-85 tokens.
+- Normalized the two-byte cached branch-target addresses stored after Goto tokens in the calculator-produced binary.
+- Compared the resulting token streams byte-for-byte.
+
+Result:
+- Source token stream: 3540 bytes
+- Uploaded binary token stream: 3597 bytes before removing cached Goto addresses
+- Normalized binary: 3541 bytes
+- Difference: exactly one final 0x6F newline/end-line token in the binary.
+- All program statements, constants, prompts, calculations, labels, and branches otherwise match exactly.
+
+Conclusion:
+The uploaded SIGHT.85p is the binary form of the latest V7 SIGHT.ASC source available here. The only normalized difference is an insignificant trailing line separator.
+
+V7 identifying changes present in BOTH source and binary:
+- Air interpolation input uses MM.SS.
+- Nautical time-after-hour input uses one MM.SS entry.
+- Star/Aries branch uses sidereal rate 15.04107 deg/hour.
+- No bare equality comparisons for program branching; safe >= and abs(... )<.5 patterns are used.
+- Inverse trig is encoded as native TI-85 asin/acos tokens via ASCII85P escape syntax in source.
+
+NOTE:
+This V7 source still contains the refraction expression:
+  1.02/tan(H+10.3/(H+5.11))*(P/1010)*(283/(273+T))
+It does NOT contain the proposed Bennett-form refraction change discussed in the other thread. Since the uploaded binary and V7 source match, this package preserves the currently working version rather than silently changing its math.

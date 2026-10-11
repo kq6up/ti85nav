@@ -1,0 +1,11 @@
+{
+  "ho_error_arcmin": 4.966267397321644e-09,
+  "hc_error_arcmin": 4.923208507534582e-09,
+  "zn_error_arcmin": 3.419813765503932e-08,
+  "intercept_error_nm": 2.9059721295965346e-10,
+  "moon_gha_error_arcmin": 0.2984214399987195,
+  "moon_dec_error_arcmin": 0.17219999999987579,
+  "moon_hp_error_arcmin": 0.20592233541518823,
+  "moon_sd_error_arcmin": 0.0728749999999998,
+  "intercept_bias_vs_jpl_nm": 0.5235727184780821
+}

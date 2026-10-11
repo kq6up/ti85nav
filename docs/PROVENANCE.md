@@ -1,0 +1,49 @@
+# Source and binary provenance
+
+Prepared October 11, 2026 from the project files supplied by the maintainer.
+
+## Editable navigation sources
+
+- SETUP.ASC and SIGHT.ASC: canonical sources from
+  `TI85_CELNAV_V8_HO229_V1_3_STRICT.zip`. SIGHT displays VERSION8 and uses
+  the V8 refraction expression.
+- AIR.ASC, SEA.ASC, and HO229.ASC: supplied in that same archive. HO229 is 1.3.
+- MOON.ASC: the separately supplied MOON 1.0 source.
+- SUN.ASC: the supplied SUN source.
+- STAR.ASC: the supplied source with the local result-page enhancement:
+  GHA star modulo 360 plus declination on the final page, retaining two pages.
+
+The original bundle documents are retained under `docs/original-bundle/`.
+Their historical statements about binary verification describe that bundle;
+the current runtime evidence is summarized below and in the scenario report.
+Legacy host executables and the original bundle's SIGHT binary are not included.
+
+## Distributed TI-85 programs
+
+All files under `programs/` were produced from the editable sources with the
+included `tools/ascii85p.py` native tokenizer. The original bundle's SIGHT
+binary did not reach its startup banner on the development TI-85 ROM, despite
+passing container/checksum inspection. Rebuilding the source with this tokenizer
+produced the SIGHT V8 binary that actually ran.
+
+SETUP, SIGHT, MOON, SUN, and STAR were transferred and run on the actual TI-85
+ROM inside TilEm. The ten recorded Moon cases used SETUP first, MOON almanac
+outputs, and SIGHT's Nautical / artificial-horizon branch. The sextant angles
+were simulated; the calculator runs and saved screens were real.
+
+SIGHT agreed with a separate implementation of its arithmetic in those ten
+cases. MOON was also compared with JPL Horizons at the ten observation times.
+Full results, weather provenance, and comparison limits are in the
+[Moon scenario report](../examples/moon-shots-2026-10-11/report.md).
+
+AIR, SEA, and HO229 were converted when preparing this repository; no runtime
+claim is made for those three files.
+
+## Converter and source notices
+
+The Python converter was copied from TilEm Portable. Its GPL-3.0-or-later
+header and full license in `tools/COPYING` are preserved.
+
+The supplied navigation files and original documents did not contain an
+explicit license. No project-wide license has been inferred or added to those
+files. A maintainer license decision remains pending.

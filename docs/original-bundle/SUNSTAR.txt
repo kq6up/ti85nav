@@ -1,0 +1,141 @@
+SUN AND STAR -- BACKUP ALMANAC FOR THE TI-85
+============================================
+Two programs that stand in for the Nautical Almanac daily pages when the
+book is wet, lost or out of date. Sun and stars only. No Moon, no planets.
+
+    SUN.ASC    V1.0   f2a37d127afebf1b3f058df97644656f
+    STAR.ASC   V1.0   613ba1a4941049298c195079b6fd610b
+
+Convert and transfer exactly like the others (see TRANSFER.txt).
+
+
+WHAT THEY GIVE YOU
+------------------
+SUN     GHA, Dec and semidiameter at the instant you enter, then the
+        equation of time on a second screen.
+
+STAR    GHA Aries, SHA and Dec of the star on the first screen, then
+        GHA of the star (Aries + SHA) on a second screen.
+
+Both ask for the same two things, one entry each:
+
+    DATE YYYY.MMDD      11 October 2026  ->  2026.1011
+    UT HH.MMSS          16h 15m 53s      ->  16.1553
+
+Enter the exact UT of the sight. The answer is for that instant, so there
+are no increments and no v or d corrections to apply afterwards.
+
+STAR first asks for the star number. Enter 0 to page through the list on
+the calculator; ENTER moves to the next page. The name is shown as soon as
+you pick a number, so a wrong number is caught before you type the date.
+
+
+READING THE OUTPUT
+------------------
+Angles are DD.MMm, the same as the rest of the suite.
+
+    GHA DDD.MMm   63.449     =  63 deg 44.9'
+    DEC N+ S-     -7.099     =  S 7 deg 09.9'
+    SD MINUTES    16         =  16.0'
+
+The calculator drops trailing zeros. 258.3 is 258 deg 30.0', and 258.03
+is 258 deg 03.0'. Read the digits after the point as MMm, padding with
+zeros on the right.
+
+    EQ TIME MM.SS   13.17    =  13 min 17 s
+
+Positive means the Sun is ahead of the clock (it crosses the meridian
+before 12:00 local mean time). The almanac prints the same number without
+a sign.
+
+
+USING THE RESULTS
+-----------------
+HO229   Take LHA = GHA -/+ your assumed longitude as on the form and use
+        the displayed Dec as the total declination. For a star use the
+        GHA STAR screen.
+
+SIGHT   Give it the displayed values as if they were the tabulated ones,
+        with zero time past the hour and zero v and d, since the values
+        are already for the exact time of the sight.
+
+Sun HP is not shown. It is 0.15' all year (0.1' in the tables).
+
+
+HOW GOOD IS IT
+--------------
+Checked by running the .ASC sources line by line in 14-digit decimal
+arithmetic and comparing with PyEphem apparent places.
+
+    SUN   3000 random instants, 2024 to 2050
+          GHA  worst 0.25'  typical 0.1'
+          Dec  worst 0.10'
+          SD   within 0.05'      Eq. of time within 2 s
+
+    STAR  120 random instants per star, 2026 to 2036
+          GHA Aries          worst 0.03'
+          57 stars           worst 0.04'
+          Polaris            worst 0.08'
+
+    The 57 stars stay within 0.05' through 2045. Polaris drifts: 0.2' by
+    2040 and 0.45' by 2045.
+
+    Known case reproduced: Sun 2026-08-29 16:15:53 UT gives 63.449 and
+    9.109 (63 44.9', N 9 10.9').
+
+NOT checked: neither program has been run on a TI-85 or the emulator, and
+the star table has not been compared against a printed almanac page. Run
+both against a few lines of the current almanac before relying on them.
+
+
+HOW IT WORKS
+------------
+SUN is a formula, not a table: mean longitude, mean anomaly, three-term
+equation of centre, five small perturbation terms (Venus, Jupiter, Moon),
+nutation and aberration, then obliquity to get Dec and the equation of
+time. Good for 1901 to 2099; the date routine fails outside that.
+
+STAR is a table: mean SHA and Dec of each star at 2030.0 with a yearly
+rate for each, extrapolated in a straight line, then corrected for
+aberration and nutation. The rates include proper motion.
+
+GHA Aries is 280.46061837 + 360.98564736629 x (days from J2000), plus the
+nutation term.
+
+A fixed 69 s is used for the difference between UT and ephemeris time.
+
+
+THINGS TO KNOW
+--------------
+Variables. Both programs use two-letter variable names only, so nothing
+SETUP stores for SIGHT is disturbed. The results stay behind in GH (GHA),
+DC (Dec), SD, EM (eq. of time), GA (GHA Aries) and SA (SHA).
+
+New to this suite, so the first things to suspect if the calculator
+objects: two-letter variable names, the \tan^-1\ escape (SUN only), and
+labels with a digit in them such as A1 (STAR only). No equality tests, no
+negation key, no ^, and no line is longer than 58 characters.
+
+Star numbers are the almanac's own (1 Alpheratz to 57 Markab). 58 is
+Polaris, added here.
+
+     1 ALPHERATZ       21 POLLUX          41 ALPHECCA
+     2 ANKAA           22 AVIOR           42 ANTARES
+     3 SCHEDAR         23 SUHAIL          43 ATRIA
+     4 DIPHDA          24 MIAPLACIDUS     44 SABIK
+     5 ACHERNAR        25 ALPHARD         45 SHAULA
+     6 HAMAL           26 REGULUS         46 RASALHAGUE
+     7 ACAMAR          27 DUBHE           47 ELTANIN
+     8 MENKAR          28 DENEBOLA        48 KAUS AUST
+     9 MIRFAK          29 GIENAH          49 VEGA
+    10 ALDEBARAN       30 ACRUX           50 NUNKI
+    11 RIGEL           31 GACRUX          51 ALTAIR
+    12 CAPELLA         32 ALIOTH          52 PEACOCK
+    13 BELLATRIX       33 SPICA           53 DENEB
+    14 ELNATH          34 ALKAID          54 ENIF
+    15 ALNILAM         35 HADAR           55 AL NAIR
+    16 BETELGEUSE      36 MENKENT         56 FOMALHAUT
+    17 CANOPUS         37 ARCTURUS        57 MARKAB
+    18 SIRIUS          38 RIGIL KENT      58 POLARIS
+    19 ADHARA          39 ZUBENELGENUBI
+    20 PROCYON         40 KOCHAB
