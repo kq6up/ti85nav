@@ -78,9 +78,12 @@ supports lint, pack, unpack, and structural/checksum checks. Its escape support
 differs from the Python tokenizer; it is not assumed to accept every source in
 this repository. `unpack` supports plain-text files only. The original
 [`converter notes`](tools/README_TI85ASC.txt) are retained; their verification
-statements describe the supplied bundle. The C converter has not been built or
-run here as part of this repository update. `make programs` continues to use the
-Python tokenizer that produced the included, recorded calculator runs.
+statements describe the supplied bundle. On October 11, 2026, the C converter
+built on ARM64 Slackware 15.0+, packed all eight sources, and its SETUP, SIGHT,
+MOON, STAR, and SUN programs transferred and ran in the native TilEm GTK
+emulator under Xvfb. See the [TilEm runtime evidence](https://github.com/kq6up/tilem-portable/blob/main/docs/STATUS.md).
+`make programs` continues to use the Python tokenizer that produced the
+included `programs/` binaries and original ten Moon scenario runs.
 
 The supplied V8 bundle's SIGHT binary did not reach its startup banner on the
 development ROM. The SIGHT binary distributed here was rebuilt from the
